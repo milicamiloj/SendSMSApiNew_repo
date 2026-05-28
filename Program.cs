@@ -38,7 +38,7 @@ builder.Services.AddScoped<ISmsService, SmsService>();
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello, all");
+app.MapGet("/", () => "Hello, all!!!");
 
 // Swagger UI dostupan samo u Development modu
 //if (app.Environment.IsDevelopment())
