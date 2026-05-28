@@ -1,4 +1,5 @@
-﻿using SendSmsApi.Infrastructure;
+﻿using Microsoft.Extensions.Options;
+using SendSmsApi.Infrastructure;
 using SendSmsApi.Models;
 
 namespace SendSmsApi.Services;
@@ -6,12 +7,14 @@ namespace SendSmsApi.Services;
 public class SmsService : ISmsService
 {
     private readonly SdpSoapClient _sdpClient;
+    public readonly SdpSettings _sdpSettings;
     private readonly ILogger<SmsService> _logger;
 
-    public SmsService(SdpSoapClient sdpClient, ILogger<SmsService> logger)
+    public SmsService(SdpSoapClient sdpClient, ILogger<SmsService> logger, IOptions<SdpSettings> sdpOptions)
     {
         _sdpClient = sdpClient;
         _logger = logger;
+        _sdpSettings = sdpOptions.Value;
     }
 
     public async Task<SendSmsResponse> SendSmsAsync(
@@ -26,8 +29,8 @@ public class SmsService : ISmsService
                 addresses,
                 request.ShortNumber,
                 request.Message,
-                request.UserName,
-                request.Password,
+                _sdpSettings.Username,
+                _sdpSettings.Password,
                 cancellationToken);
 
             _logger.LogInformation(

@@ -18,6 +18,10 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+// SdpSettings options
+builder.Services.Configure<SdpSettings>(
+    builder.Configuration.GetSection("SdpSettings"));
+
 // Typed HttpClient za SDP SOAP endpoint
 builder.Services.AddHttpClient<SdpSoapClient>(client =>
 {
