@@ -1,5 +1,8 @@
 using SendSmsApi.Infrastructure;
 using SendSmsApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,31 @@ builder.Services.AddOpenApi(options =>
 builder.Services.Configure<SdpSettings>(
     builder.Configuration.GetSection("SdpSettings"));
 
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSettings = builder.Configuration
+            .GetSection("JwtSettings")
+            .Get<JwtSettings>() ?? throw new InvalidOperationException("JwtSettings nisu konfigurisana u appsettings.json");
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 // Typed HttpClient za SDP SOAP endpoint
 builder.Services.AddHttpClient<SdpSoapClient>(client =>
 {
@@ -35,6 +63,7 @@ builder.Services.AddHttpClient<SdpSoapClient>(client =>
 
 // Servis
 builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
@@ -56,6 +85,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
