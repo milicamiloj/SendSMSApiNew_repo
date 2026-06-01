@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using SendSmsApi.Infrastructure;
 using SendSmsApi.Services;
 
@@ -36,19 +37,18 @@ builder.Services.AddHttpClient<SdpSoapClient>(client =>
 // Servis
 builder.Services.AddScoped<ISmsService, SmsService>();
 
+// ✅ NOVO: Registruj Bearer Token autentifikaciju
+builder.Services.AddAuthentication("BearerToken")
+    .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthHandler>("BearerToken", null);
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello, all!!!");
 
-// Swagger UI dostupan samo u Development modu
-//if (app.Environment.IsDevelopment())
-//{
-//    app.MapOpenApi();
-//}
-// OpenAPI spec dostupan uvek (potrebno za M365 Copilot agent)
 app.MapOpenApi("/openapi/v1.json");
 
-// Swagger UI na /swagger
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/openapi/v1.json", "SendSms API v1");
@@ -56,6 +56,11 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseHttpsRedirection();
+
+// ✅ NOVO: mora biti pre MapControllers()
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

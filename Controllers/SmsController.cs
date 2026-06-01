@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SendSmsApi.Models;
 using SendSmsApi.Services;
 
@@ -6,6 +7,7 @@ namespace SendSmsApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize] // ✅ NOVO — štiti sve endpointe u controlleru
 public class SmsController : ControllerBase
 {
     private readonly ISmsService _smsService;
@@ -19,6 +21,7 @@ public class SmsController : ControllerBase
     [HttpPost("send")]
     [ProducesResponseType(typeof(SendSmsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SendSms(
         [FromBody] SendSmsRequest request,
         CancellationToken cancellationToken)
