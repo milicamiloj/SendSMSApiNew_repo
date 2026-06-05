@@ -1,0 +1,19 @@
+{
+  "Information": [
+    "Ova konfiguracija se koristi od strane AWS Lambda Visual Studio Toolkit i dotnet Lambda CLI alatom.",
+    "Dokumentacija: https://github.com/aws/aws-extensions-for-dotnet-cli"
+  ],
+  "profile": "",
+  "region": "eu-central-1",
+  "configuration": "Release",
+  "s3-bucket": "zic-lambda-deployments-milica",
+  "s3-prefix": "SendSmsApi/",
+  "framework": "net10.0",
+  "function-runtime": "dotnet10",
+  "function-memory-size": 512,
+  "function-timeout": 30,
+  "function-handler": "SendSmsApi",
+  "function-name": "SendSmsApiFunction",
+  "template": "template.yaml",
+  "stack-name": "SendSmsApiStack"
+}

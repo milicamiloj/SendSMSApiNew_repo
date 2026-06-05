@@ -14,8 +14,6 @@ Globals:
     Environment:
       Variables:
         ASPNETCORE_ENVIRONMENT: Production
-        # SdpSettings se ucitavaju iz AWS Parameter Store (pogledaj README-AWS.md)
-        # NE stavljaj kredencijale direktno ovde!
 
 Parameters:
   SdpUrl:
@@ -44,7 +42,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: SendSmsApiFunction
-      Description: SendSms REST API - saljanje SMS poruka preko SDP ParlayX
+      Description: SendSms REST API - slanje SMS poruka preko SDP ParlayX
       Handler: SendSmsApi
       CodeUri: ./
       Policies:
@@ -57,58 +55,44 @@ Resources:
           SdpSettings__Username: !Ref SdpUsername
           SdpSettings__Password: !Ref SdpPassword
           SdpSettings__TimeoutSeconds: "30"
-          # ApiTokens se ucitavaju kao environment variable niz
           ApiTokens__0: !Ref ApiToken
       Events:
-        # Root endpoint
         RootGet:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /
             Method: GET
-
-        # SMS send
         SmsSend:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /api/sms/send
             Method: POST
-
-        # SMS send-logo
         SmsSendLogo:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /api/sms/send-logo
             Method: POST
-
-        # SMS send-ringtone
         SmsSendRingtone:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /api/sms/send-ringtone
             Method: POST
-
-        # Delivery status
         SmsDeliveryStatus:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /api/sms/delivery-status/{requestIdentifier}
             Method: GET
-
-        # Swagger UI
         SwaggerUI:
           Type: Api
           Properties:
             RestApiId: !Ref SendSmsApiGateway
             Path: /swagger/{proxy+}
             Method: ANY
-
-        # OpenAPI JSON
         OpenApiJson:
           Type: Api
           Properties:
@@ -126,8 +110,6 @@ Resources:
         AllowMethods: "'GET,POST,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization'"
         AllowOrigin: "'*'"
-      Auth:
-        DefaultAuthorizer: NONE
 
 Outputs:
   SendSmsApiUrl:
