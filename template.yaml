@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SendSmsApi - REST API za slanje SMS poruka preko SDP ParlayX servisa
+  Deployed as AWS Lambda + API Gateway using AWS SAM
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: dotnet10
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        ASPNETCORE_ENVIRONMENT: Production
+
+Parameters:
+  SdpUrl:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /SendSmsApi/SdpSettings/Url
+    Description: URL SDP ParlayX SOAP endpointa
+
+  SdpUsername:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /SendSmsApi/SdpSettings/Username
+    Description: Korisnicko ime za SDP autentifikaciju
+
+  SdpPassword:
+    Type: AWS::SSM::Parameter::Value<SecureString>
+    Default: /SendSmsApi/SdpSettings/Password
+    Description: Lozinka za SDP autentifikaciju (SecureString)
+
+  ApiToken:
+    Type: AWS::SSM::Parameter::Value<SecureString>
+    Default: /SendSmsApi/ApiTokens/0
+    Description: Bearer token za autentifikaciju API poziva (SecureString)
+
+Resources:
+
+  SendSmsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SendSmsApiFunction
+      Description: SendSms REST API - slanje SMS poruka preko SDP ParlayX
+      Handler: SendSmsApi
+      CodeUri: ./
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - SSMParameterReadPolicy:
+            ParameterName: /SendSmsApi/*
+      Environment:
+        Variables:
+          SdpSettings__Url: !Ref SdpUrl
+          SdpSettings__Username: !Ref SdpUsername
+          SdpSettings__Password: !Ref SdpPassword
+          SdpSettings__TimeoutSeconds: "30"
+          ApiTokens__0: !Ref ApiToken
+      Events:
+        RootGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /
+            Method: GET
+        SmsSend:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /api/sms/send
+            Method: POST
+        SmsSendLogo:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /api/sms/send-logo
+            Method: POST
+        SmsSendRingtone:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /api/sms/send-ringtone
+            Method: POST
+        SmsDeliveryStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /api/sms/delivery-status/{requestIdentifier}
+            Method: GET
+        SwaggerUI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /swagger/{proxy+}
+            Method: ANY
+        OpenApiJson:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SendSmsApiGateway
+            Path: /openapi/v1.json
+            Method: GET
+
+  SendSmsApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: SendSmsApiGateway
+      StageName: prod
+      Description: API Gateway za SendSms Lambda funkciju
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+Outputs:
+  SendSmsApiUrl:
+    Description: "URL API Gatewaya za SendSms API (prod stage)"
+    Value: !Sub "https://${SendSmsApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+    Export:
+      Name: SendSmsApiUrl
+
+  SendSmsApiFunctionArn:
+    Description: "ARN Lambda funkcije"
+    Value: !GetAtt SendSmsApiFunction.Arn
+    Export:
+      Name: SendSmsApiFunctionArn
+
+  SendSmsApiFunctionIamRole:
+    Description: "IAM Role kreirana implicitno za Lambda funkciju"
+    Value: !GetAtt SendSmsApiFunctionRole.Arn
+    Export:
+      Name: SendSmsApiFunctionIamRole
