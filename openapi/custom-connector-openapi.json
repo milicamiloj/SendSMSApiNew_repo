@@ -1,0 +1,219 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SendSms API",
+    "description": "REST API za slanje SMS poruka preko SDP ParlayX servisa",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://YOUR_API_HOST/prod",
+      "description": "AWS API Gateway prod"
+    }
+  ],
+  "paths": {
+    "/api/sms/send": {
+      "post": {
+        "tags": [
+          "Sms"
+        ],
+        "summary": "Šalje SMS poruku",
+        "description": "Šalje SMS poruku preko SDP ParlayX servisa.",
+        "operationId": "SendSms",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendSmsRequest"
+              },
+              "example": {
+                "sessionMSISDN": "381641234567",
+                "message": "Test poruka",
+                "shortNumber": "12345"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uspešno poslata SMS poruka",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendSmsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Neispravan zahtev"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Greška servera"
+          }
+        }
+      }
+    },
+    "/api/sms/send-logo": {
+      "post": {
+        "tags": [
+          "Sms"
+        ],
+        "summary": "Slanje SMS Logo",
+        "description": "Endpoint postoji, ali nije implementiran.",
+        "operationId": "SendSmsLogo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/api/sms/send-ringtone": {
+      "post": {
+        "tags": [
+          "Sms"
+        ],
+        "summary": "Slanje SMS Ringtone",
+        "description": "Endpoint postoji, ali nije implementiran.",
+        "operationId": "SendSmsRingtone",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/api/sms/delivery-status/{requestIdentifier}": {
+      "get": {
+        "tags": [
+          "Sms"
+        ],
+        "summary": "Dohvatanje statusa dostave",
+        "description": "Endpoint postoji, ali nije implementiran.",
+        "operationId": "GetDeliveryStatus",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "requestIdentifier",
+            "in": "path",
+            "required": true,
+            "description": "Identifikator zahteva za proveru statusa dostave",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "501": {
+            "description": "Not Implemented"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Health/root endpoint",
+        "operationId": "Root",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Hello, all!!!"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Token",
+        "description": "Pošalji Authorization header u formatu: Bearer <token>"
+      }
+    },
+    "schemas": {
+      "SendSmsRequest": {
+        "type": "object",
+        "required": [
+          "sessionMSISDN",
+          "message",
+          "shortNumber"
+        ],
+        "properties": {
+          "sessionMSISDN": {
+            "type": "string",
+            "description": "Broj telefona primaoca u formatu 381641234567",
+            "example": "381641234567"
+          },
+          "message": {
+            "type": "string",
+            "description": "Tekst SMS poruke koja se šalje",
+            "example": "Test poruka"
+          },
+          "shortNumber": {
+            "type": "string",
+            "description": "Kratki broj pošiljaoca (npr. 12345)",
+            "example": "12345"
+          }
+        }
+      },
+      "SendSmsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "True ako je SMS uspješno poslat",
+            "example": true
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Identifikator zahteva koji je vratio SDP",
+            "example": "abc123"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Poruka greške ukoliko slanje nije uspjelo",
+            "example": null
+          }
+        }
+      }
+    }
+  }
+}
