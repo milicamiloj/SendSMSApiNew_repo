@@ -1,0 +1,194 @@
+openapi: 3.0.1
+info:
+  title: SendSms API
+  description: >-
+    Power Platform friendly OpenAPI specifikacija za custom connector nad
+    SendSms API servisom. Omogućava login i slanje SMS poruka preko SDP
+    ParlayX servisa.
+  version: v1
+servers:
+  - url: https://YOUR_API_HOST/prod
+    description: AWS API Gateway prod
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Prijava korisnika
+      description: >-
+        Vraća token koji možeš koristiti u Authorization header-u kao Bearer
+        token za zaštićene SMS operacije.
+      operationId: LoginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: admin
+              password: password123
+      responses:
+        '200':
+          description: Uspešna prijava
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Pogrešni kredencijali
+  /api/sms/send:
+    post:
+      tags:
+        - SMS
+      summary: Pošalji SMS poruku
+      description: Šalje SMS poruku preko SDP ParlayX servisa.
+      operationId: SendSmsMessage
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendSmsRequest'
+            example:
+              sessionMSISDN: '381641234567'
+              message: Test poruka iz custom connectora
+              shortNumber: '12345'
+      responses:
+        '200':
+          description: Uspešno poslata SMS poruka
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendSmsResponse'
+        '400':
+          description: Neispravan zahtev
+        '401':
+          description: Unauthorized
+        '500':
+          description: Greška servera
+  /api/sms/send-logo:
+    post:
+      tags:
+        - SMS
+      summary: Pošalji SMS logo
+      description: Endpoint postoji ali trenutno nije implementiran.
+      operationId: SendSmsLogoMessage
+      security:
+        - bearerAuth: []
+      responses:
+        '501':
+          description: Not Implemented
+  /api/sms/send-ringtone:
+    post:
+      tags:
+        - SMS
+      summary: Pošalji SMS ringtone
+      description: Endpoint postoji ali trenutno nije implementiran.
+      operationId: SendSmsRingtoneMessage
+      security:
+        - bearerAuth: []
+      responses:
+        '501':
+          description: Not Implemented
+  /api/sms/delivery-status/{requestIdentifier}:
+    get:
+      tags:
+        - SMS
+      summary: Proveri status dostave
+      description: Endpoint postoji ali trenutno nije implementiran.
+      operationId: GetSmsDeliveryStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestIdentifier
+          in: path
+          required: true
+          description: Identifikator zahteva za proveru statusa dostave
+          schema:
+            type: string
+      responses:
+        '501':
+          description: Not Implemented
+  /:
+    get:
+      tags:
+        - System
+      summary: Proveri da li servis radi
+      description: Jednostavan root endpoint koji vraća tekstualni odgovor.
+      operationId: GetRootStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello, all!!!
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Token
+      description: 'Pošalji Authorization header u formatu: Bearer <token>'
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Korisničko ime za prijavu
+          example: admin
+        password:
+          type: string
+          description: Lozinka za prijavu
+          example: password123
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token koji koristiš kao Bearer token za SMS pozive
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    SendSmsRequest:
+      type: object
+      required:
+        - sessionMSISDN
+        - message
+        - shortNumber
+      properties:
+        sessionMSISDN:
+          type: string
+          description: Broj telefona primaoca u formatu 381641234567
+          example: '381641234567'
+        message:
+          type: string
+          description: Tekst SMS poruke koja se šalje
+          example: Test poruka
+        shortNumber:
+          type: string
+          description: Kratki broj pošiljaoca na koji je servis podešen
+          example: '12345'
+    SendSmsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: True ako je SMS uspešno poslat
+          example: true
+        requestId:
+          type: string
+          nullable: true
+          description: Identifikator zahteva koji je vratio SDP
+          example: abc123
+        errorMessage:
+          type: string
+          nullable: true
+          description: Poruka greške ukoliko slanje nije uspelo
+          example: null
